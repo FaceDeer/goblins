@@ -1,4 +1,7 @@
-dofile(minetest.get_modpath("goblins").."/traps.lua")
+local modname = minetest.get_current_modname()
+local S = minetest.get_translator(modname)
+local modpath = minetest.get_modpath(modname)
+dofile(modpath.."/traps.lua")
 
 -- Npc by TenPlus1 converted for FLG Goblins :D
 
@@ -17,7 +20,7 @@ local goblin_sounds = {
 	distance = 15,
 }
 
-local debugging_goblins = true
+local debugging_goblins = false
 
 -- local routine for do_custom so that api doesn't need changed
 local search_replace2 = function(
@@ -36,12 +39,12 @@ local search_replace2 = function(
 
 	if math.random(1, search_rate) == 1 then
 		-- look for nodes
-		local pos  = self.object:getpos() --
-		local pos1 = self.object:getpos()
-		local pos2 = self.object:getpos()
-		--local pos  = vector.round(self.object:getpos())  --will have to investigate these further
-		--local pos1 = vector.round(self.object:getpos())
-		--local pos2 = vector.round(self.object:getpos())
+		local pos  = self.object:get_pos() --
+		local pos1 = self.object:get_pos()
+		local pos2 = self.object:get_pos()
+		--local pos  = vector.round(self.object:get_pos())  --will have to investigate these further
+		--local pos1 = vector.round(self.object:get_pos())
+		--local pos2 = vector.round(self.object:get_pos())
 
 		-- if we are looking, will we look below and by how much?
 		if math.random(1, search_rate_below) == 1 then
@@ -59,7 +62,7 @@ local search_replace2 = function(
 		pos2.z = pos2.z + search_offset
 
 		if debugging_goblins then
-			print (self.name:split(":")[2] .. " at\n "
+			minetest.debug(self.name:split(":")[2] .. " at\n "
 			.. minetest.pos_to_string(pos) .. " is searching between\n "
 			.. minetest.pos_to_string(pos1) .. " and\n "
 			.. minetest.pos_to_string(pos2))
@@ -68,8 +71,8 @@ local search_replace2 = function(
 		local nodelist = minetest.find_nodes_in_area(pos1, pos2, replace_what)
 		if #nodelist > 0 then
 			if debugging_goblins == true then
-				print(#nodelist.." nodes found by " .. self.name:split(":")[2]..":")
-				for k,v in pairs(nodelist) do print(minetest.get_node(v).name:split(":")[2].. " found.") end
+				minetest.debug(#nodelist.." nodes found by " .. self.name:split(":")[2]..":")
+				for k,v in pairs(nodelist) do minetest.debug(minetest.get_node(v).name:split(":")[2].. " found.") end
 			end
 			for key,value in pairs(nodelist) do 
 				-- ok we see some nodes around us, are we going to replace them?
@@ -78,12 +81,12 @@ local search_replace2 = function(
 					math.random(1, replace_rate_secondary) == 1 then
 						minetest.set_node(value, {name = replace_with_secondary})
 						if debugging_goblins == true then
-							print(replace_with_secondary.." secondary node placed by " .. self.name:split(":")[2])
+							minetest.debug(replace_with_secondary.." secondary node placed by " .. self.name:split(":")[2])
 						end
 					else
 						minetest.set_node(value, {name = replace_with})
 						if debugging_goblins == true then
-							print(replace_with.." placed by " .. self.name:split(":")[2])
+							minetest.debug(replace_with.." placed by " .. self.name:split(":")[2])
 						end
 					end
 					minetest.sound_play(self.sounds.replace, {
@@ -96,46 +99,25 @@ local search_replace2 = function(
 	end
 end
 
-mobs:register_mob("goblins:goblin_cobble", {
-	description = "Cobble Goblin",
-	type = "animal",
+local goblin_base = {
 	passive = false,
-	damage = 1,
 	attack_type = "dogfight",
-	attacks_monsters = true,
-	hp_min = 5,
-	hp_max = 10,
-	armor = 100,
 	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
 	visual = "mesh",
 	mesh = "goblins_goblin.b3d",
 	drawtype = "front",
-		textures = {
-			{"goblins_goblin_cobble1.png"},
-			{"goblins_goblin_cobble2.png"},
-			
-		},
 	makes_footstep_sound = true,
 	sounds = goblin_sounds,
 	walk_velocity = 2,
 	run_velocity = 3,
 	jump = true,
-	drops = {
-		{name = "default:mossycobble",
-		chance = 1, min = 1, max = 3},
-		{name = "default:apple",
-		chance = 2, min = 1, max = 2},
-		{name = "default:torch",
-		chance = 3, min = 1, max = 10},
-	},
 	water_damage = 0,
 	lava_damage = 2,
 	light_damage = 0,
-	lifetimer = 360,
-	follow = {"default:diamond", "default:apple", "farming:bread"},
 	view_range = 10,
 	owner = "",
 	order = "follow",
+	follow = {"default:diamond", "default:apple", "farming:bread"},
 	animation = {
 		speed_normal = 30,
 		speed_run = 30,
@@ -148,20 +130,19 @@ mobs:register_mob("goblins:goblin_cobble", {
 		punch_start = 200,
 		punch_end = 219,
 	},
-
 	on_rightclick = function(self, clicker)
 		-- feed to heal goblin (breed and tame set to false)
 		if not mobs:feed_tame(self, clicker, 8, false, false) then
 			local item = clicker:get_wielded_item()
 			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
+	
+			-- right clicking with gold lump drops random item from goblin_drops
 			if item:get_name() == "default:gold_lump" then
 				if not minetest.setting_getbool("creative_mode") then
 					item:take_item()
 					clicker:set_wielded_item(item)
 				end
-				local pos = self.object:getpos()
+				local pos = self.object:get_pos()
 				pos.y = pos.y + 0.5
 				minetest.add_item(pos, {
 					name = goblin_drops[math.random(1, #goblin_drops)]
@@ -170,6 +151,40 @@ mobs:register_mob("goblins:goblin_cobble", {
 			end
 		end
 	end,
+}
+
+local function goblin_def(overrides)
+	local out = {}
+	for k, v in pairs(goblin_base) do
+		out[k] = v
+	end
+	for k, v in pairs(overrides) do
+		out[k] = v
+	end
+	return out
+end
+
+mobs:register_mob("goblins:goblin_cobble", goblin_def({
+	description = S("Cobble Goblin"),
+	type = "animal",
+	damage = 1,
+	attacks_monsters = true,
+	hp_min = 5,
+	hp_max = 10,
+	armor = 100,
+	textures = {
+		{"goblins_goblin_cobble1.png"},
+		{"goblins_goblin_cobble2.png"},
+	},
+	drops = {
+		{name = "default:mossycobble",
+		chance = 1, min = 1, max = 3},
+		{name = "default:apple",
+		chance = 2, min = 1, max = 2},
+		{name = "default:torch",
+		chance = 3, min = 1, max = 10},
+	},
+	lifetimer = 360,
 
 	do_custom = function(self)
 		search_replace2(
@@ -189,31 +204,21 @@ mobs:register_mob("goblins:goblin_cobble", {
 		"goblins:mossycobble_trap" --replace_with_secondary
 		)
 	end,
-})
-mobs:register_egg("goblins:goblin_cobble", "Goblin Egg (cobble)", "default_mossycobble.png", 1)
+}))
+
+mobs:register_egg("goblins:goblin_cobble", S("Goblin Egg (cobble)"), "default_mossycobble.png", 1)
 
 mobs:register_mob("goblins:goblin_digger", {
-	description = "Digger Goblin",
+	description = S("Digger Goblin"),
 	type = "animal",
-	passive = false,
 	damage = 1,
-	attack_type = "dogfight",
 	attacks_monsters = true,
 	hp_min = 5,
 	hp_max = 10,
 	armor = 100,
-	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
-	visual = "mesh",
-	mesh = "goblins_goblin.b3d",
-	drawtype = "front",
-		textures = {
-			{"goblins_goblin_digger.png"},
-		},
-	makes_footstep_sound = true,
-	sounds = goblin_sounds,
-	walk_velocity = 2,
-	run_velocity = 3,
-	jump = true,
+	textures = {
+		{"goblins_goblin_digger.png"},
+	},
 	jump_height = 5,
 	drops = {
 		{name = "default:mossycobble",
@@ -223,48 +228,7 @@ mobs:register_mob("goblins:goblin_digger", {
 		{name = "default:torch",
 		chance = 3, min = 1, max = 10},
 	},
-	water_damage = 0,
-	lava_damage = 2,
-	light_damage = 0,
 	lifetimer = 360,
-	follow = {"default:diamond", "default:apple", "default:bread"},
-	view_range = 10,
-	owner = "",
-	order = "follow",
-	animation = {
-		speed_normal = 30,
-		speed_run = 30,
-		stand_start = 0,
-		stand_end = 79,
-		walk_start = 168,
-		walk_end = 187,
-		run_start = 168,
-		run_end = 187,
-		punch_start = 200,
-		punch_end = 219,
-	},
-
-	on_rightclick = function(self, clicker)
-		-- feed to heal goblin (breed and tame set to false)
-		if not mobs:feed_tame(self, clicker, 8, false, false) then
-			local item = clicker:get_wielded_item()
-			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
-			if item:get_name() == "default:gold_lump" then
-				if not minetest.setting_getbool("creative_mode") then
-					item:take_item()
-					clicker:set_wielded_item(item)
-				end
-				local pos = self.object:getpos()
-				pos.y = pos.y + 0.5
-				minetest.add_item(pos, {
-					name = goblin_drops[math.random(1, #goblin_drops)]
-				})
-				return
-			end
-		end
-	end,
 
 	do_custom = function(self)
 		search_replace2(
@@ -288,31 +252,20 @@ mobs:register_mob("goblins:goblin_digger", {
 		)
 	end,
 })
-mobs:register_egg("goblins:goblin_digger", "Goblin Egg (digger)", "default_mossycobble.png", 1)
+mobs:register_egg("goblins:goblin_digger", S("Goblin Egg (digger)"), "default_mossycobble.png", 1)
 
 mobs:register_mob("goblins:goblin_coal", {
-	description = "Coal Goblin",
+	description = S("Coal Goblin"),
 	type = "animal",
-	passive = false,
 	damage = 1,
-	attack_type = "dogfight",
 	attacks_monsters = true,
 	hp_min = 5,
 	hp_max = 10,
 	armor = 100,
-	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
-	visual = "mesh",
-	mesh = "goblins_goblin.b3d",
-	drawtype = "front",
-		textures = {
-			{"goblins_goblin_coal1.png"},
-			{"goblins_goblin_coal2.png"},
-		},
-	makes_footstep_sound = true,
-	sounds = goblin_sounds,
-	walk_velocity = 2,
-	run_velocity = 3,
-	jump = true,
+	textures = {
+		{"goblins_goblin_coal1.png"},
+		{"goblins_goblin_coal2.png"},
+	},
 	drops = {
 		{name = "default:coal_lump",
 		chance = 1, min = 1, max = 3},
@@ -321,47 +274,6 @@ mobs:register_mob("goblins:goblin_coal", {
 		{name = "default:torch",
 		chance = 3, min = 1, max = 10},
 	},
-	water_damage = 0,
-	lava_damage = 2,
-	light_damage = 0,
-	follow = {"default:diamond", "default:apple", "farming:bread"},
-	view_range = 10,
-	owner = "",
-	order = "follow",
-	animation = {
-		speed_normal = 30,
-		speed_run = 30,
-		stand_start = 0,
-		stand_end = 79,
-		walk_start = 168,
-		walk_end = 187,
-		run_start = 168,
-		run_end = 187,
-		punch_start = 200,
-		punch_end = 219,
-	},
-
-	on_rightclick = function(self, clicker)
-		-- feed to heal goblin (breed and tame set to false)
-		if not mobs:feed_tame(self, clicker, 8, false, false) then
-			local item = clicker:get_wielded_item()
-			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
-			if item:get_name() == "default:gold_lump" then
-				if not minetest.setting_getbool("creative_mode") then
-					item:take_item()
-					clicker:set_wielded_item(item)
-				end
-				local pos = self.object:getpos()
-				pos.y = pos.y + 0.5
-				minetest.add_item(pos, {
-					name = goblin_drops[math.random(1, #goblin_drops)]
-				})
-				return
-			end
-		end
-	end,
 
 	do_custom = function(self)
 		search_replace2(
@@ -383,31 +295,20 @@ mobs:register_mob("goblins:goblin_coal", {
 	end,
 
 })
-mobs:register_egg("goblins:goblin_coal", "Goblin Egg (coal)", "default_mossycobble.png", 1)
+mobs:register_egg("goblins:goblin_coal", S("Goblin Egg (coal)"), "default_mossycobble.png", 1)
 
 mobs:register_mob("goblins:goblin_iron", {
-	description = "Iron Goblin",
+	description = S("Iron Goblin"),
 	type = "monster",
-	passive = false,
 	damage = 2,
-	attack_type = "dogfight",
 	attacks_monsters = false,
 	hp_min = 10,
 	hp_max = 20,
 	armor = 100,
-	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
-	visual = "mesh",
-	mesh = "goblins_goblin.b3d",
-	drawtype = "front",
-		textures = {
-			{"goblins_goblin_iron1.png"},
-			{"goblins_goblin_iron2.png"},
-		},
-	makes_footstep_sound = true,
-	sounds = goblin_sounds,
-	walk_velocity = 2,
-	run_velocity = 3,
-	jump = true,
+	textures = {
+		{"goblins_goblin_iron1.png"},
+		{"goblins_goblin_iron2.png"},
+	},
 	drops = {
 		{name = "default:iron_lump",
 		chance = 1, min = 1, max = 3},
@@ -416,48 +317,8 @@ mobs:register_mob("goblins:goblin_iron", {
 		{name = "default:pick_steel",
 		chance = 5, min = 1, max = 1},
 	},
-	water_damage = 0,
-	lava_damage = 2,
-	light_damage = 0,
-	follow = {"default:diamond", "default:apple", "default:bread"},
-	view_range = 10,
-	owner = "",
-	order = "follow",
-	animation = {
-		speed_normal = 30,
-		speed_run = 30,
-		stand_start = 0,
-		stand_end = 79,
-		walk_start = 168,
-		walk_end = 187,
-		run_start = 168,
-		run_end = 187,
-		punch_start = 200,
-		punch_end = 219,
-	},
 
-	on_rightclick = function(self, clicker)
-		-- feed to heal goblin (breed and tame set to false)
-		if not mobs:feed_tame(self, clicker, 8, false, false) then
-			local item = clicker:get_wielded_item()
-			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
-			if item:get_name() == "default:gold_lump" then
-				if not minetest.setting_getbool("creative_mode") then
-					item:take_item()
-					clicker:set_wielded_item(item)
-				end
-				local pos = self.object:getpos()
-				pos.y = pos.y + 0.5
-				minetest.add_item(pos, {
-					name = goblin_drops[math.random(1, #goblin_drops)]
-				})
-				return
-			end
-		end
-	end,
-
+	on_rightclick = goblin_on_rightclick,
 	do_custom = function(self)
 		search_replace2(
 		self,
@@ -478,31 +339,20 @@ mobs:register_mob("goblins:goblin_iron", {
 		)
 	end,
 })
-mobs:register_egg("goblins:goblin_iron", "Goblin Egg (iron)", "default_mossycobble.png", 1)
+mobs:register_egg("goblins:goblin_iron", S("Goblin Egg (iron)"), "default_mossycobble.png", 1)
 
 mobs:register_mob("goblins:goblin_copper", {
-	description = "Copper Goblin",
+	description = S("Copper Goblin"),
 	type = "monster",
-	passive = false,
 	damage = 2,
-	attack_type = "dogfight",
 	attacks_monsters = false,
 	hp_min = 10,
 	hp_max = 20,
 	armor = 100,
-	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
-	visual = "mesh",
-	mesh = "goblins_goblin.b3d",
-	drawtype = "front",
-		textures = {
-			{"goblins_goblin_copper1.png"},
-			{"goblins_goblin_copper2.png"},
-		},
-	makes_footstep_sound = true,
-	sounds = goblin_sounds,
-	walk_velocity = 2,
-	run_velocity = 3,
-	jump = true,
+	textures = {
+		{"goblins_goblin_copper1.png"},
+		{"goblins_goblin_copper2.png"},
+	},
 	drops = {
 		{name = "default:copper_lump",
 		chance = 1, min = 1, max = 3},
@@ -511,47 +361,6 @@ mobs:register_mob("goblins:goblin_copper", {
 		{name = "default:pick_steel",
 		chance = 5, min = 1, max = 1},
 	},
-	water_damage = 0,
-	lava_damage = 2,
-	light_damage = 0,
-	follow = {"default:diamond", "default:apple", "default:bread"},
-	view_range = 10,
-	owner = "",
-	order = "follow",
-	animation = {
-		speed_normal = 30,
-		speed_run = 30,
-		stand_start = 0,
-		stand_end = 79,
-		walk_start = 168,
-		walk_end = 187,
-		run_start = 168,
-		run_end = 187,
-		punch_start = 200,
-		punch_end = 219,
-	},
-
-	on_rightclick = function(self, clicker)
-		-- feed to heal goblin (breed and tame set to false)
-		if not mobs:feed_tame(self, clicker, 8, false, false) then
-			local item = clicker:get_wielded_item()
-			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
-			if item:get_name() == "default:gold_lump" then
-				if not minetest.setting_getbool("creative_mode") then
-					item:take_item()
-					clicker:set_wielded_item(item)
-				end
-				local pos = self.object:getpos()
-				pos.y = pos.y + 0.5
-				minetest.add_item(pos, {
-					name = goblin_drops[math.random(1, #goblin_drops)]
-				})
-				return
-			end
-		end
-	end,
 
 	do_custom = function(self)
 		search_replace2(
@@ -573,31 +382,20 @@ mobs:register_mob("goblins:goblin_copper", {
 		)
 	end,
 })
-mobs:register_egg("goblins:goblin_copper", "Goblin Egg (copper)", "default_mossycobble.png", 1)
+mobs:register_egg("goblins:goblin_copper", S("Goblin Egg (copper)"), "default_mossycobble.png", 1)
 
 mobs:register_mob("goblins:goblin_gold", {
-	description = "Gold Goblin",
+	description = S("Gold Goblin"),
 	type = "monster",
-	passive = false,
 	damage = 3,
-	attack_type = "dogfight",
 	attacks_monsters = false,
 	hp_min = 10,
 	hp_max = 30,
 	armor = 100,
-	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
-	visual = "mesh",
-	mesh = "goblins_goblin.b3d",
-	drawtype = "front",
 	textures = {
 		{"goblins_goblin_gold1.png"},
 		{"goblins_goblin_gold2.png"},
 	},
-	makes_footstep_sound = true,
-	sounds = goblin_sounds,
-	walk_velocity = 2,
-	run_velocity = 3,
-	jump = true,
 	drops = {
 		{name = "default:gold_lump",
 		chance = 1, min = 1, max = 3},
@@ -606,47 +404,6 @@ mobs:register_mob("goblins:goblin_gold", {
 		{name = "default:gold_ingot",
 		chance = 5, min = 1, max = 1},
 	},
-	water_damage = 0,
-	lava_damage = 2,
-	light_damage = 0,
-	follow = {"default:diamond", "default:apple", "farming:bread"},
-	view_range = 10,
-	owner = "",
-	order = "follow",
-	animation = {
-		speed_normal = 30,
-		speed_run = 30,
-		stand_start = 0,
-		stand_end = 79,
-		walk_start = 168,
-		walk_end = 187,
-		run_start = 168,
-		run_end = 187,
-		punch_start = 200,
-		punch_end = 219,
-	},
-
-	on_rightclick = function(self, clicker)
-		-- feed to heal goblin (breed and tame set to false)
-		if not mobs:feed_tame(self, clicker, 8, false, false) then
-			local item = clicker:get_wielded_item()
-			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
-			if item:get_name() == "default:gold_lump" then
-				if not minetest.setting_getbool("creative_mode") then
-					item:take_item()
-					clicker:set_wielded_item(item)
-				end
-				local pos = self.object:getpos()
-				pos.y = pos.y + 0.5
-				minetest.add_item(pos, {
-					name = goblin_drops[math.random(1, #goblin_drops)]
-				})
-				return
-			end
-		end
-	end,
 
 	do_custom = function(self)
 		search_replace2(
@@ -668,31 +425,20 @@ mobs:register_mob("goblins:goblin_gold", {
 		)
 	end,
 })
-mobs:register_egg("goblins:goblin_gold", "Goblin Egg (gold)", "default_mossycobble.png", 1)
+mobs:register_egg("goblins:goblin_gold", S("Goblin Egg (gold)"), "default_mossycobble.png", 1)
 
 mobs:register_mob("goblins:goblin_diamond", {
-	description = "Diamond Goblin",
+	description = S("Diamond Goblin"),
 	type = "monster",
-	passive = false,
 	damage = 3,
-	attack_type = "dogfight",
 	attacks_monsters = false,
 	hp_min = 20,
 	hp_max = 30,
 	armor = 100,
-	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
-	visual = "mesh",
-	mesh = "goblins_goblin.b3d",
-	drawtype = "front",
-		textures = {
-			{"goblins_goblin_diamond1.png"},
-			{"goblins_goblin_diamond2.png"},
-		},
-	makes_footstep_sound = true,
-	sounds = goblin_sounds,
-	walk_velocity = 2,
-	run_velocity = 3,
-	jump = true,
+	textures = {
+		{"goblins_goblin_diamond1.png"},
+		{"goblins_goblin_diamond2.png"},
+	},
 	drops = {
 		{name = "default:pick_diamond",
 		chance = 1, min = 1, max = 1},
@@ -701,47 +447,6 @@ mobs:register_mob("goblins:goblin_diamond", {
 		{name = "default:diamond",
 		chance = 5, min = 1, max = 1},
 	},
-	water_damage = 0,
-	lava_damage = 2,
-	light_damage = 0,
-	follow = {"default:diamond", "default:apple", "farming:bread"},
-	view_range = 10,
-	owner = "",
-	order = "follow",
-	animation = {
-		speed_normal = 30,
-		speed_run = 30,
-		stand_start = 0,
-		stand_end = 79,
-		walk_start = 168,
-		walk_end = 187,
-		run_start = 168,
-		run_end = 187,
-		punch_start = 200,
-		punch_end = 219,
-	},
-
-	on_rightclick = function(self, clicker)
-		-- feed to heal goblin (breed and tame set to false)
-		if not mobs:feed_tame(self, clicker, 8, false, false) then
-			local item = clicker:get_wielded_item()
-			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
-			if item:get_name() == "default:gold_lump" then
-				if not minetest.setting_getbool("creative_mode") then
-					item:take_item()
-					clicker:set_wielded_item(item)
-				end
-				local pos = self.object:getpos()
-				pos.y = pos.y + 0.5
-				minetest.add_item(pos, {
-					name = goblin_drops[math.random(1, #goblin_drops)]
-				})
-				return
-			end
-		end
-	end,
 
 	do_custom = function(self)
 		search_replace2(
@@ -764,30 +469,19 @@ mobs:register_mob("goblins:goblin_diamond", {
 	end,
 
 })
-mobs:register_egg("goblins:goblin_diamond", "Goblin Egg (diamond)", "default_mossycobble.png", 1)
+mobs:register_egg("goblins:goblin_diamond", S("Goblin Egg (diamond)"), "default_mossycobble.png", 1)
 
 mobs:register_mob("goblins:goblin_king", {
-	description = "Goblin King",
+	description = S("Goblin King"),
 	type = "monster",
-	passive = false,
 	damage = 4,
-	attack_type = "dogfight",
 	attacks_monsters = false,
 	hp_min = 20,
 	hp_max = 40,
 	armor = 100,
-	collisionbox = {-0.35,-1,-0.35, 0.35,-.1,0.35},
-	visual = "mesh",
-	mesh = "goblins_goblin.b3d",
-	drawtype = "front",
-		textures = {
-			{"goblins_goblin_king.png"},
-		},
-	makes_footstep_sound = true,
-	sounds = goblin_sounds,
-	walk_velocity = 2,
-	run_velocity = 3,
-	jump = true,
+	textures = {
+		{"goblins_goblin_king.png"},
+	},
 	drops = {
 		{name = "default:pick_mese",
 		chance = 1, min = 1, max = 1},
@@ -796,47 +490,6 @@ mobs:register_mob("goblins:goblin_king", {
 		{name = "default:mese_crystal",
 		chance = 5, min = 1, max = 1},
 	},
-	water_damage = 0,
-	lava_damage = 2,
-	light_damage = 0,
-	follow = {"default:diamond", "default:apple", "farming:bread"},
-	view_range = 10,
-	owner = "",
-	order = "follow",
-	animation = {
-		speed_normal = 30,
-		speed_run = 30,
-		stand_start = 0,
-		stand_end = 79,
-		walk_start = 168,
-		walk_end = 187,
-		run_start = 168,
-		run_end = 187,
-		punch_start = 200,
-		punch_end = 219,
-	},
-
-	on_rightclick = function(self, clicker)
-		-- feed to heal goblin (breed and tame set to false)
-		if not mobs:feed_tame(self, clicker, 8, false, false) then
-			local item = clicker:get_wielded_item()
-			local name = clicker:get_player_name()
-
-			-- right clicking with gold lump drops random item from mobs.npc_drops
-			if item:get_name() == "default:gold_lump" then
-				if not minetest.setting_getbool("creative_mode") then
-					item:take_item()
-					clicker:set_wielded_item(item)
-				end
-				local pos = self.object:getpos()
-				pos.y = pos.y + 0.5
-				minetest.add_item(pos, {
-					name = goblin_drops[math.random(1, #goblin_drops)]
-				})
-				return
-			end
-		end
-	end,
 
 	do_custom = function(self)
 		search_replace2(
@@ -856,7 +509,7 @@ mobs:register_mob("goblins:goblin_king", {
 		)
 	end,
 })
-mobs:register_egg("goblins:goblin_king", "Goblin King Egg", "default_mossycobble.png", 1)
+mobs:register_egg("goblins:goblin_king", S("Goblin King Egg"), "default_mossycobble.png", 1)
 
 -- spawn at or below 0 near ore and dungeons and goblin lairs (areas of mossy cobble), except diggers that will dig out caves from stone and cobble goblins who create goblin lairs near stone.
 --function mobs_goblins:register_spawn(name, nodes, max_light, min_light, chance, active_object_count, max_height)
@@ -891,4 +544,4 @@ mobs:spawn_specific("goblins:goblin_gold", {"default:stone_with_gold", "default:
 mobs:spawn_specific("goblins:goblin_diamond", {"default:stone_with_diamond", "default:mossycobble" }, "air", 0, 50, 1,2, 3, -30000, -80)
 mobs:spawn_specific("goblins:goblin_king", {"default:mossycobble",},"air", 0, 50, 1, 10, 3, -30000, -100)
 
-print ("[MOD] Goblins loaded")
+minetest.log("action", "[MOD] Goblins loaded")

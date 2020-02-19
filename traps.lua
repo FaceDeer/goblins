@@ -1,9 +1,10 @@
 --[[some nasty things goblins can do]]
 --Super thanks to duane-r for his work: https://github.com/duane-r/mobs_goblins/blob/work/goblin_traps.lua
 
+local S = minetest.get_translator(minetest.get_current_modname())
 
 minetest.register_node("goblins:mossycobble_trap", {
-	description = "Messy Gobblestone",
+	description = S("Messy Gobblestone"),
 	tiles = {"default_mossycobble.png"},
 	is_ground_content = false,
 	groups = {cracky = 2, stone = 1},
@@ -13,7 +14,7 @@ minetest.register_node("goblins:mossycobble_trap", {
 })
 
 minetest.register_node("goblins:stone_with_coal_trap", {
-	description = "Coal Trap",
+	description = S("Coal Trap"),
 	tiles = {"default_cobble.png^default_mineral_coal.png"},
 	groups = {cracky = 1, level = 2},
 	drop = 'default:coal_lump',
@@ -33,7 +34,7 @@ minetest.register_node("goblins:stone_with_coal_trap", {
 })
 
 minetest.register_node("goblins:stone_with_iron_trap", {
-	description = "Iron Gore",
+	description = S("Iron Gore"),
 	tiles = {"default_cobble.png^default_mineral_iron.png"},
 	groups = {cracky = 1, level = 2},
 	drop = 'default:iron_lump',
@@ -52,7 +53,7 @@ minetest.register_node("goblins:stone_with_iron_trap", {
 	end,
 })
 minetest.register_node("goblins:stone_with_copper_trap", {
-	description = "Copper Gore",
+	description = S("Copper Gore"),
 	tiles = {"default_cobble.png^default_mineral_copper.png"},
 	groups = {cracky = 1, level = 2},
 	drop = 'default:copper_lump',
@@ -70,7 +71,7 @@ minetest.register_node("goblins:stone_with_copper_trap", {
 	end,
 })
 minetest.register_node("goblins:stone_with_gold_trap", {
-	description = "Gold Gore",
+	description = S("Gold Gore"),
 	tiles = {"default_cobble.png^default_mineral_gold.png"},
 	groups = {cracky = 1,level = 2},
 	drop = 'default:gold_lump',
@@ -88,7 +89,7 @@ minetest.register_node("goblins:stone_with_gold_trap", {
 	end,
 })
 minetest.register_node("goblins:stone_with_diamond_trap", {
-	description = "Diamond Gore",
+	description = S("Diamond Gore"),
 	tiles = {"default_cobble.png^default_mineral_diamond.png"},
 	groups = {cracky = 1, level = 3},
 	drop = 'default:diamond',
@@ -107,7 +108,7 @@ minetest.register_node("goblins:stone_with_diamond_trap", {
 })
 
 minetest.register_node("goblins:molten_gold_source", {
-	description = "Molten Gold Source",
+	description = S("Molten Gold"),
 	inventory_image = minetest.inventorycube("default_lava.png"),
 	drawtype = "liquid",
 	tiles = {
@@ -155,7 +156,7 @@ minetest.register_node("goblins:molten_gold_source", {
 })
 
 minetest.register_node("goblins:molten_gold_flowing", {
-	description = "Flowing Molten Gold",
+	description = S("Flowing Molten Gold"),
 	inventory_image = minetest.inventorycube("default_lava.png"),
 	drawtype = "flowingliquid",
 	tiles = {"default_lava.png"},
@@ -312,12 +313,9 @@ minetest.register_abm({
 		end
 	end})
 
-local setting = minetest.setting_getbool("enable_tnt")
-if setting == true then
-	print("enable_tnt = true")
-else
-	print("enable_tnt ~= true")
-end
+local setting = minetest.settings:get_bool("enable_tnt")
+local singleplayer = minetest.is_singleplayer()
+
 if (not singleplayer and setting ~= true) or (singleplayer and setting == false) then
 	-- wimpier trap for non-tnt settings
 	minetest.register_abm({
