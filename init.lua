@@ -318,7 +318,6 @@ mobs:register_mob("goblins:goblin_iron", {
 		chance = 5, min = 1, max = 1},
 	},
 
-	on_rightclick = goblin_on_rightclick,
 	do_custom = function(self)
 		search_replace2(
 		self,

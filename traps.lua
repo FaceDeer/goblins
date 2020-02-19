@@ -211,7 +211,7 @@ minetest.register_abm({
 	interval = 1,
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
-		for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 0.95)) do -- IDKWTF this is but it works
+		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 0.95)) do -- IDKWTF this is but it works
 				if object:is_player() then
 					object:set_physics_override({speed = 0.1})
 					minetest.after(1, function() -- this effect is temporary
@@ -226,7 +226,7 @@ minetest.register_abm({
 	interval = 1,
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
-		for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 3)) do
+		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 3)) do
 			if object:is_player() then
 				minetest.set_node(pos, {name="fire:basic_flame"})
 				if object:get_hp() > 0 then
@@ -248,7 +248,7 @@ minetest.register_abm({
 	interval = 2,
 	chance = 2, --this may be a dud
 	action = function(pos, node, active_object_count, active_object_count_wider)
-		for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 2)) do
+		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 2)) do
 			if object:is_player() then
 				if object:get_hp() > 0 then
 					object:set_hp(object:get_hp()-1)
@@ -282,7 +282,7 @@ minetest.register_abm({
 	interval = 1,
 	chance = 2,
 	action = function(pos, node, active_object_count, active_object_count_wider)
-		for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 3)) do
+		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 3)) do
 			if object:is_player() then
 				if object:get_hp() > 0 then
 					object:set_hp(object:get_hp()-1)
@@ -299,7 +299,7 @@ minetest.register_abm({
 	interval = 1,
 	chance = 2,
 	action = function(pos, node, active_object_count, active_object_count_wider)
-		for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 2)) do
+		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 2)) do
 			if object:is_player() then
 				minetest.set_node(pos, {name="goblins:molten_gold_source"})
 				if object:get_hp() > 0 then
@@ -323,7 +323,7 @@ if (not singleplayer and setting ~= true) or (singleplayer and setting == false)
 		interval = 1,
 		chance = 1,
 		action = function(pos, node, active_object_count, active_object_count_wider)
-			for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 3)) do
+			for _,object in ipairs(minetest.get_objects_inside_radius(pos, 3)) do
 				if object:is_player() then
 					minetest.set_node(pos, {name="default:lava_source"})
 					if object:get_hp() > 0 then
@@ -343,7 +343,7 @@ else
 		interval = 1,
 		chance = 1,
 		action = function(pos, node, active_object_count, active_object_count_wider)
-			for _,object in ipairs(minetest.env:get_objects_inside_radius(pos, 3)) do
+			for _,object in ipairs(minetest.get_objects_inside_radius(pos, 3)) do
 				if object:is_player() then
 					minetest.set_node(pos, {name="tnt:tnt_burning"})
 					minetest.get_node_timer(pos):start(5)
